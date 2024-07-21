@@ -53,15 +53,16 @@ jobs:
 
       - name: Create release tag
         run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
           git tag -a v${{ github.run_number }} -m "Release ${{ github.run_number }}"
           git push origin v${{ github.run_number }}
+
       - name: Update CHANGELOG.md
         id: update_changelog
         run: |
           echo "## Release ${{ github.run_number }}" > temp_changelog.md
           echo "$(cat temp_changelog.md CHANGELOG.md)" > CHANGELOG.md
-          git config --global user.email "email@example.com"
-          git config --global user.name "Username"
           git commit -am "Update CHANGELOG.md"
           git push origin main
           
