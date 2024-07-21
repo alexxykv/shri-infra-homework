@@ -21,6 +21,6 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo ${{ secrets.YANDEX_OAUTH_TOKEN }} | docker login cr.yandex -u oauth --password-stdin
+            sudo usermod -aG docker $USER
             docker pull cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.event.inputs.release_version }}_latest
             docker run -p 80:3000 -d cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.event.inputs.release_version }}_latest
