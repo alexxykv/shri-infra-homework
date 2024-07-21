@@ -66,14 +66,18 @@ jobs:
           git commit -am "Update CHANGELOG.md"
           git push origin main
           
-      - name: Create GitHub Issue
-        uses: peter-evans/create-issue-from-file@v2
+      - name: Create issue content
+        id: create_content
+        run: |
+          echo "## Release ${{ github.run_number }}" > release_info.md
+          echo "- **Date:** $(date)" >> release_info.md
+          echo "- **Author:** ${{ github.actor }}" >> release_info.md
+          echo "- **Version:** ${{ github.run_number }}" >> release_info.md
+          echo "- **Commits:** ${{ steps.changelog.outputs.commits }}" >> release_info.md
+          echo "- **Docker Image:** cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}" >> release_info.md
+
+      - name: Create Github Issue
+        uses: peter-evans/create-issue-from-file@v5
         with:
           title: Release ${{ github.run_number }}
-          content: |
-            ## Release ${{ github.run_number }}
-            - **Date:** ${{ steps.date.outputs.date }}
-            - **Author:** ${{ github.actor }}
-            - **Version:** ${{ github.run_number }}
-            - **Commits:** ${{ steps.changelog.outputs.commits }}
-            - **Docker Image:** cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }}
+          content-filepath: release_info.md
