@@ -74,7 +74,7 @@ jobs:
           echo "- **Author:** ${{ github.actor }}" >> release_info.md
           echo "- **Version:** ${{ github.run_number }}" >> release_info.md
           echo "- **Commits:** ${{ steps.changelog.outputs.commits }}" >> release_info.md
-          echo "- **Docker Image:** cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}" >> release_info.md
+          echo "- **Docker Image:** cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }}" >> release_info.md
 
       - name: Create Github Issue
         uses: peter-evans/create-issue-from-file@v5
