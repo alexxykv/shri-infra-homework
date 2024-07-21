@@ -38,7 +38,7 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
-          docker build -t cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} .
+          docker build -t cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }} .
           docker tag cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }} cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }}_latest
 
       - name: Push Docker image to registry
