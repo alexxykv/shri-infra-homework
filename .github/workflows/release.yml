@@ -48,13 +48,13 @@ jobs:
 
       - name: Create release branch
         run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
           git checkout -b releases/${{ github.run_number }}
           git push origin releases/${{ github.run_number }}
 
       - name: Create release tag
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
           git tag -a v${{ github.run_number }} -m "Release ${{ github.run_number }}"
           git push origin v${{ github.run_number }}
 
