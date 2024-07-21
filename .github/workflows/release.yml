@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run linter
+        run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Run tests
+        run: npm test
+
+  release:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Yandex Container Registry
+        run: |
+          echo ${{ secrets.YANDEX_OAUTH_TOKEN }} | docker login cr.yandex -u oauth --password-stdin
+
+      - name: Build and tag Docker image
+        run: |
+          docker build -t cr.yandex/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} .
+          docker tag cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }} cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }}_latest
+
+      - name: Push Docker image to registry
+        run: |
+          docker push cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }}
+          docker push cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }}_latest
+
+      - name: Create release branch
+        run: |
+          git checkout -b releases/${{ github.run_number }}
+          git push origin releases/${{ github.run_number }}
+
+      - name: Create release tag
+        run: |
+          git tag -a v${{ github.run_number }} -m "Release ${{ github.run_number }}"
+          git push origin v${{ github.run_number }}
+      - name: Update CHANGELOG.md
+        id: update_changelog
+        run: |
+          echo "## Release ${{ github.run_number }}" > temp_changelog.md
+          echo "$(cat temp_changelog.md CHANGELOG.md)" > CHANGELOG.md
+          git config --global user.email "email@example.com"
+          git config --global user.name "Username"
+          git commit -am "Update CHANGELOG.md"
+          git push origin main
+          
+      - name: Create GitHub Issue
+        uses: peter-evans/create-issue-from-file@v2
+        with:
+          title: Release ${{ github.run_number }}
+          content: |
+            ## Release ${{ github.run_number }}
+            - **Date:** ${{ steps.date.outputs.date }}
+            - **Author:** ${{ github.actor }}
+            - **Version:** ${{ github.run_number }}
+            - **Commits:** ${{ steps.changelog.outputs.commits }}
+            - **Docker Image:** cr.yandex/${{ secrets.YANDEX_REGISTRY_ID }}/app:${{ github.run_number }}
